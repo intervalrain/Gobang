@@ -2,9 +2,9 @@
 
 namespace Server.Hubs;
 
-public class BlazerChatSampleHub : Hub
+public class BlazorChatSampleHub : Hub
 {
-	public const string hubUrl = "/chat";
+	public const string HubUrl = "/chat";
 
 	public async Task BroadCast(string userName, string message)
 	{

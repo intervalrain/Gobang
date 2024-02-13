@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Application.Usecases;
+using Microsoft.AspNetCore.SignalR;
 using Server.Models;
+using Server.Presenters;
 
 namespace Server.Hubs;
 
@@ -8,6 +10,11 @@ public class GobangHub : Hub
 	public const string HubUrl = "/gobang";
 
     private readonly List<GobangRoom> goBangRooms = new(); 
+
+    //public async Task CreateRoom(string roomName, string? password, CreateRoomUsecase usecase, SignalrDefaultPresenter<CreateRoomResponse> presenter)
+    //{
+
+    //}
 
     public async Task CreateRoom(string roomName, string? password = null)
     {

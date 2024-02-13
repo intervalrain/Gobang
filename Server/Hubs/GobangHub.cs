@@ -5,7 +5,7 @@ namespace Server.Hubs;
 
 public class GobangHub : Hub
 {
-	public const string HubUrl = "/gobang/";
+	public const string HubUrl = "/gobang";
 
     private readonly List<GobangRoom> goBangRooms = new(); 
 

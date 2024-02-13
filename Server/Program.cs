@@ -28,5 +28,6 @@ app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapHub<BlazorChatSampleHub>(BlazorChatSampleHub.HubUrl);
+app.MapHub<GobangHub>(GobangHub.HubUrl);
 
 app.Run();

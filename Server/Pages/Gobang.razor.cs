@@ -1,16 +1,28 @@
-﻿using Microsoft.JSInterop;
-using Server;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
+using Server.Hubs;
 using Server.Models;
 
 namespace Server.Pages;
 
-public partial class Gobang
+public partial class Gobang : IDisposable
 {
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+
     private int[,] Chess = new int[19, 19];
 
-    private string first = "ai";
+    private bool AIMode = false;
+
+    private string first { get; set; } = "he";
 
     private bool IsInGame = false;
+
+    private bool IsInRoom = false;
+
+    private bool IsReady = false;
+
+    private GobangRoom? Room { get; set; } 
 
     private string? msgs;
 
@@ -18,7 +30,42 @@ public partial class Gobang
 
     private int MineChess = 2;
 
-    private void StartGame()
+    private string? _hubUrl;
+
+    private HubConnection? _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_hubConnection is null)
+        {
+            string baseUrl = NavigationManager!.BaseUri;
+            _hubUrl = baseUrl.TrimEnd('/') + GobangHub.HubUrl;
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(_hubUrl)
+                .ConfigureLogging(logging => logging.AddConsole())
+                .Build();
+
+            await _hubConnection.StartAsync();
+        }
+        await base.OnInitializedAsync();
+    }
+
+    protected async Task CreateRoom()
+    {
+        IsInRoom = true;
+    }
+
+    protected async Task GetInRoom()
+    {
+        IsInRoom = true;
+    }
+
+    private async Task Invite()
+    {
+
+    }
+
+    private async Task StartGame()
     {
         // 初始化棋盤
         Chess = new int[19, 19];
@@ -28,7 +75,7 @@ public partial class Gobang
         {
             msgs = string.Empty;
         }
-        else
+        else if (AIMode)
         {
             // 電腦先手
             if (first == "ai")
@@ -49,6 +96,15 @@ public partial class Gobang
 
                 msgs = "我：持黑子 ⚫ 電腦：持白子 ⚪";
             }
+        }
+        else
+        {
+            if (Room is null)
+            {
+                var roomname = await JS.InvokeAsync<string>("prompt", "請輸入房間名稱");
+                if (string.IsNullOrEmpty(roomname)) return;
+            }
+            msgs = "房主持黑子 ⚫ 來賓持白子 ⚪";
         }
 
         // 改變遊戲狀態，用於顯示不同文字的按鈕
@@ -694,5 +750,15 @@ public partial class Gobang
         #endregion 捺方向 ↘↖
 
         return false;
+    }
+
+    public async void Dispose()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.StopAsync();
+            await _hubConnection.DisposeAsync();
+            _hubConnection = null;
+        } 
     }
 }

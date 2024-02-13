@@ -1,0 +1,40 @@
+﻿@page "/gobang"
+@page "/"
+@inject IJSRuntime JS
+
+<div class="gobang-box">
+    <div class="chess">
+        @for (var i = 0; i < 19; i++)
+        {
+            @for (var j = 0; j < 19; j++)
+            {
+                var _i = i;
+                var _j = j;
+                <div class="cell" @onclick="@(async () => await Playing(_i, _j))">
+                    <span class="chess@(Chess[i, j])"></span>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="chess-info">
+    <h1>五子棋⚫⚪</h1>
+    <p><b>⚡是時候表演真正的技術了，快來一場頭腦對決吧⚡</b></p>
+    <p><label><input type="radio" name="chess" checked="checked" @onclick="@(() => first = "ai")"> 電腦先手</label></p>
+    <p><label><input type="radio" name="chess" @onclick="@(() => first = "me")"> 我先手</label></p>
+    <p><button class="box-btn" @onclick="StartGame">@(IsInGame ? "結束遊戲" : "開始遊戲")</button></p>
+    <div class="chess-msg">
+        <p><b>@msgs</b></p>
+        <p>遊戲規則：</p>
+        <span>（1）請選擇電腦先手還是你先手，先手者持黑棋</span>
+        <span>（2）點擊開始遊戲開始對局。</span>
+        <span>（3）點擊結束遊戲結束對局。。</span>
+        <span>（4）對局雙方各執一色棋子。</span>
+        <span>（5）空棋盤開局。</span>
+        <span>（6）黑先、白後，交替下子，每次只能下一子。</span>
+        <span>（7）棋子下在棋盤的空白點上，棋子下定後，不得向其它點移動，或悔棋。</span>
+        <span>（8）黑方的第一枚棋子可下在棋盤任意交叉點上。</span>
+        <span>（9）輪流下子是雙方的權利</span>
+    </div>
+</div>

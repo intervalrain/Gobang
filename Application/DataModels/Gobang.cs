@@ -1,3 +1,3 @@
 ﻿namespace Application.DataModels;
 
-public record Gobang(string Id);
+public record Gobang(string Id, string HostId, string Password);

@@ -13,9 +13,13 @@ internal class GobangEventBus : IEventBus<DomainEvent>
         _handlers = handlers.ToDictionary(h => h.EventType, h => h);
 	}
 
-    public Task PublishAsync(IEnumerable<DomainEvent> events)
+    public async Task PublishAsync(IEnumerable<DomainEvent> events)
     {
-        throw new NotImplementedException();
+        foreach (var e in events)
+        {
+            var handler = GetHandler(e);
+            await handler!.HandleAsync(e);
+        }
     }
 
     private IGobangEventHandler GetHandler(DomainEvent e)

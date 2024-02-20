@@ -3,12 +3,22 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using Server.Hubs;
 using Server.Models;
-
+using MudBlazor;
 namespace Server.Pages;
 
 public partial class Gobang : IDisposable
 {
+    private string? _hubUrl;
+
+    private HubConnection? _hubConnection;
+
     [Inject] private NavigationManager? NavigationManager { get; set; }
+
+    [Inject] private ISnackbar Snackbar { get; set; }  
+
+    [Parameter] public string RoomName { get; set; }
+
+    private Role Role { get; set; }
 
     private int[,] Chess = new int[19, 19];
 
@@ -30,10 +40,6 @@ public partial class Gobang : IDisposable
 
     private int MineChess = 2;
 
-    private string? _hubUrl;
-
-    private HubConnection? _hubConnection;
-
     protected override async Task OnInitializedAsync()
     {
         if (_hubConnection is null)
@@ -43,26 +49,60 @@ public partial class Gobang : IDisposable
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(_hubUrl)
                 .ConfigureLogging(logging => logging.AddConsole())
+                .AddJsonProtocol()
                 .Build();
 
+            _hubConnection.On<int[,]>("SynchronizeCheckerboard", SynchronizeCheckerboard);
+            _hubConnection.On<string>("Alert", Alert);
             await _hubConnection.StartAsync();
         }
         await base.OnInitializedAsync();
     }
 
-    protected async Task CreateRoom()
+    protected override async Task OnParametersSetAsync()
     {
-        IsInRoom = true;
+        if (!string.IsNullOrEmpty(RoomName))
+        {
+            var password = await JS.InvokeAsync<string>("prompt", "請輸入房間密碼", "");
+            var username = await JS.InvokeAsync<string>("prompt", "請輸入您的遊戲名稱", "User B");
+            IsInRoom = true;
+            IsInGame = true;
+            //MineChess = 2;
+            //Room = new GobangRoom() { RoomName = RoomName };
+            await _hubConnection!.SendAsync(nameof(GobangHub.GetIntoRoom), RoomName, password, username);
+        }
+        await base.OnParametersSetAsync();
     }
 
-    protected async Task GetInRoom()
+    protected async Task CreateRoom()
+    {
+        Role = Role.Host;
+        IsInRoom = true;
+        var roomname = await JS.InvokeAsync<string>("prompt", "請輸入房間名稱", Guid.NewGuid());
+        var password = await JS.InvokeAsync<string>("prompt", "請輸入房間密碼", "");
+        var username = await JS.InvokeAsync<string>("prompt", "請輸入您的遊戲名稱", "User A");
+        if (string.IsNullOrEmpty(roomname) || string.IsNullOrEmpty(username)) return;
+        
+        await _hubConnection!.SendAsync(nameof(GobangHub.CreateRoom), roomname, username, password);
+        //Room = new GobangRoom() { RoomName = roomname };
+    }
+
+    protected async Task GetIntoRoom()
     {
         IsInRoom = true;
+        IsInGame = true;
+        var roomname = await JS.InvokeAsync<string>("prompt", "請輸入房間名稱");
+        var password = await JS.InvokeAsync<string>("prompt", "請輸入房間密碼", "");
+        var username = await JS.InvokeAsync<string>("prompt", "請輸入您的遊戲名稱", "User B");
+        await _hubConnection!.SendAsync(nameof(GobangHub.GetIntoRoom), roomname, username, password);
+        //MineChess = 2;
+        //Room = new GobangRoom() { RoomName = roomname };
     }
 
     private async Task Invite()
     {
-
+        Snackbar.Add("複製連結成功，快去邀請你的朋友吧！");
+        await JS.InvokeVoidAsync("copyToClipboard", NavigationManager.BaseUri + Room!.RoomName);
     }
 
     private async Task StartGame()
@@ -70,73 +110,139 @@ public partial class Gobang : IDisposable
         // 初始化棋盤
         Chess = new int[19, 19];
 
-        // 是否開始遊戲，點擊按鈕重擊顯示消息
-        if (IsInGame)
+        IsInGame = true;
+
+        await _hubConnection!.SendAsync("Playing", Room, Chess);
+
+        //// 是否開始遊戲，點擊按鈕重擊顯示消息
+        //if (IsInGame)
+        //{
+        //    msgs = string.Empty;
+        //}
+        //else if (AIMode)
+        //{
+        //    // 電腦先手
+        //    if (first == "ai")
+        //    {
+        //        AIChess = 1;
+        //        MineChess = 2;
+
+        //        // 電腦落子正中心天元位置
+        //        Chess[9, 9] = AIChess;
+
+        //        msgs = "電腦：持黑子 ⚫ 我：持白子 ⚪";
+        //    }
+        //    else
+        //    {
+        //        // 我先手的話則我持黑子，電腦持白子
+        //        MineChess = 1;
+        //        AIChess = 2;
+
+        //        msgs = "我：持黑子 ⚫ 電腦：持白子 ⚪";
+        //    }
+        //}
+        //else
+        //{
+        //    if (Room is null)
+        //    {
+        //        var roomname = await JS.InvokeAsync<string>("prompt", "請輸入房間名稱");
+        //        if (string.IsNullOrEmpty(roomname)) return;
+        //    }
+        //    msgs = "房主持黑子 ⚫ 來賓持白子 ⚪";
+        //}
+
+        //// 改變遊戲狀態，用於顯示不同文字的按鈕
+        //IsInGame = !IsInGame;
+    }
+
+    private async Task Playing((int,int) value)
+    {
+        (int row, int cell) = value;
+
+        var numEqual = Chess.OfType<int>().Count(x => x == 1) == Chess.OfType<int>().Count(x => x == 2);
+
+        if (MineChess == 1)
         {
-            msgs = string.Empty;
-        }
-        else if (AIMode)
-        {
-            // 電腦先手
-            if (first == "ai")
+            if (!numEqual)
             {
-                AIChess = 1;
-                MineChess = 2;
-
-                // 電腦落子正中心天元位置
-                Chess[9, 9] = AIChess;
-
-                msgs = "電腦：持黑子 ⚫ 我：持白子 ⚪";
-            }
-            else
-            {
-                // 我先手的話則我持黑子，電腦持白子
-                MineChess = 1;
-                AIChess = 2;
-
-                msgs = "我：持黑子 ⚫ 電腦：持白子 ⚪";
+                Snackbar.Add("對方落子時間");
+                return;
             }
         }
         else
         {
-            if (Room is null)
+            if (numEqual)
             {
-                var roomname = await JS.InvokeAsync<string>("prompt", "請輸入房間名稱");
-                if (string.IsNullOrEmpty(roomname)) return;
+                Snackbar.Add("對方落子時間");
+                return;
             }
-            msgs = "房主持黑子 ⚫ 來賓持白子 ⚪";
         }
 
-        // 改變遊戲狀態，用於顯示不同文字的按鈕
-        IsInGame = !IsInGame;
-    }
-
-    private async Task Playing(int row, int cell)
-    {
-        // 是否開始遊戲，當前判斷沒開始給出提示
         if (!IsInGame)
         {
-            await JS.InvokeAsync<Task>("alert", "\n💪點擊開始遊戲開啟對局，請閱讀遊戲規則💪");
+            Snackbar.Add("\n點擊開始遊戲開啟對局，請先閱讀遊戲規則！");
             return;
         }
 
-        // 已落子直接返回，不做任何操作
         if (Chess[row, cell] != 0)
+        {
             return;
+        }
 
-        // 根據傳進來的座標進行我方落子
         Chess[row, cell] = MineChess;
 
         if (IsWin(MineChess, row, cell))
         {
-            await JS.InvokeAsync<Task>("alert", "\n恭喜，你赢了👍");
+            await JS.InvokeAsync<Task>("alert", "\n恭喜，你贏了👍");
 
             IsInGame = !IsInGame;
-            return;
+            await _hubConnection!.SendAsync("Win", Room);
         }
 
-        // 我方落子之後電腦落子
-        await AIPlaying(AIChess);
+        await _hubConnection!.SendAsync("Playing", Room, Chess);
+        StateHasChanged();
+
+        //// 是否開始遊戲，當前判斷沒開始給出提示
+        //if (!IsInGame)
+        //{
+        //    await JS.InvokeAsync<Task>("alert", "\n💪點擊開始遊戲開啟對局，請閱讀遊戲規則💪");
+        //    return;
+        //}
+
+        //// 已落子直接返回，不做任何操作
+        //if (Chess[row, cell] != 0)
+        //    return;
+
+        //// 根據傳進來的座標進行我方落子
+        //Chess[row, cell] = MineChess;
+
+        //if (IsWin(MineChess, row, cell))
+        //{
+        //    await JS.InvokeAsync<Task>("alert", "\n恭喜，你赢了👍");
+
+        //    IsInGame = !IsInGame;
+        //    return;
+        //}
+
+        //// 我方落子之後電腦落子
+        //await AIPlaying(AIChess);
+    }
+
+    private void SynchronizeCheckerboard(int[,] chess)
+    {
+        Chess = chess;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Alert(string msg)
+    {
+        await JS.InvokeAsync<string>("alert", msg);
+
+        if (msg == "遊戲結束")
+        {
+            IsInGame = false;
+            Chess = new int[19, 19];
+        }
     }
 
     private async Task AIPlaying(int chess)

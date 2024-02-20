@@ -1,0 +1,14 @@
+﻿<div class="chess">
+    @for (int i = 0; i < 19; i++)
+    {
+        @for (int j = 0; j < 19; j++)
+        {
+            var _i = i;
+            var _j = j;
+            <div class="cell" @onclick="@(async () => await Playing(_i, _j))">
+                <span class="chess@(Chess[i, j])"></span>
+            </div>
+        }
+    }   
+</div>
+

@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.1" />
     <PackageReference Include="System.Security.Claims" Version="4.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
+    <PackageReference Include="MudBlazor" Version="6.15.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Models\" />
@@ -22,6 +23,8 @@
     <None Remove="Presenters\" />
     <None Remove="Repositories\" />
     <None Remove="Services\" />
+    <None Remove="Components\" />
+    <None Remove="Hubs\EventHandlers\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
@@ -30,12 +33,17 @@
     <Folder Include="Presenters\" />
     <Folder Include="Repositories\" />
     <Folder Include="Services\" />
+    <Folder Include="Components\" />
+    <Folder Include="Hubs\EventHandlers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
     <ProjectReference Include="..\Domain\Domain.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

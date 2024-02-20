@@ -65,7 +65,7 @@ internal class VerificationHub
                 // 如果已經斷開連線測試失敗
                 if (_connection.State == HubConnectionState.Disconnected)
                 {
-                    if (_queues[nameof(IGobangResponses.PlayerJoinGameFailedEvent)].TryPeek(out var errorMessages))
+                    if (_queues[nameof(IGobangResponses.FailToGetIntoRoomEvent)].TryPeek(out var errorMessages))
                         Assert.Fail(
                             $"""
                              已經斷開連線
@@ -147,11 +147,7 @@ internal class VerificationHub
     {
         foreach (var (method, queue) in _queues)
         {
-            if (method == nameof(IGobangResponses.PlayerJoinGameEvent))
-            {
-                continue;
-            }
-            if (method == nameof(IGobangResponses.WelcomeEvent))
+            if (method == nameof(IGobangResponses.GetIntoRoomEvent))
             {
                 continue;
             }

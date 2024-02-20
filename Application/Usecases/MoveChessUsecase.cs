@@ -14,9 +14,19 @@ public class MoveChessUsecase : CommandUsecase<MoveChessRequest, MoveChessRespon
 	{  
 	}
 
-    public override Task ExecuteAsync(MoveChessRequest request, IPresenter<MoveChessResponse> presenter)
+    public override async Task ExecuteAsync(MoveChessRequest request, IPresenter<MoveChessResponse> presenter)
     {
-        throw new NotImplementedException();
+		// 查
+		var game = Repository.FindGameById(request.GameId).ToDomain();
+
+		// 改
+		game.PlayerMoveChess(request.PlayerId, request.Row, request.Col);
+
+		// 存
+		Repository.Save(game);
+
+		// 推
+		await presenter.PresentAsync(new MoveChessResponse(game.DomainEvents));
     }
 }
 

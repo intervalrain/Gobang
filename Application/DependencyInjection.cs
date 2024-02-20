@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Application.Common;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Application.Common;
+namespace Application;
 
 public static class DependencyInjection
 {

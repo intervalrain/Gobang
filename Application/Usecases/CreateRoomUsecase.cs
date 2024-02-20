@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.DataModels;
 using Domain.Common;
 
 namespace Application.Usecases;
@@ -14,9 +15,17 @@ public class CreateRoomUsecase : CommandUsecase<CreateRoomRequest, CreateRoomRes
 	{
 	}
 
-    public override Task ExecuteAsync(CreateRoomRequest request, IPresenter<CreateRoomResponse> presenter)
+    public override async Task ExecuteAsync(CreateRoomRequest request, IPresenter<CreateRoomResponse> presenter)
     {
-        throw new NotImplementedException();
+        // 查
+        // 改
+        var game = new Gobang(request.GameId, request.PlayerId, request.Password!).ToDomain();
+
+        // 存
+        Repository.Save(game);
+
+        // 推
+        await presenter.PresentAsync(new CreateRoomResponse(game.DomainEvents));
     }
 }
 

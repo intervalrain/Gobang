@@ -2,14 +2,16 @@
 using Application.Common;
 using Domain.Common;
 using Server.Common;
+using Server.Pages;
 using Server.Presenters;
 using Server.Repositories;
+using SharedLibrary;
 
 namespace Server;
 
 public static class DependencyInjection
 {
-	public static IServiceCollection AddGobangServer(IServiceCollection services)
+	public static IServiceCollection AddGobangServer(this IServiceCollection services)
 	{
 		var repository = new InMemoryRepository();
 		services.AddSingleton<ICommandRepository>(repository)

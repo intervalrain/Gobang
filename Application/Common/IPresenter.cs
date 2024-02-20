@@ -2,5 +2,5 @@
 
 public interface IPresenter<in TResponse>
 {
-    public Task PresentTask(TResponse response);
+    public Task PresentAsync(TResponse response);
 }

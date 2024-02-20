@@ -17,13 +17,13 @@ public class MockMoveChessUsecase : MoveChessUsecase
         var game = Repository.FindGameById(request.GameId).ToDomain();
 
         // 改
-        game.MoveChess(request.PlayerId, request.Row, request.Col);
+        game.PlayerMoveChess(request.PlayerId, request.Row, request.Col);
 
         // 存
         Repository.Save(game);
 
         // 推
-        await presenter.PresentTask(new MoveChessResponse(game.DomainEvents));
+        await presenter.PresentAsync(new MoveChessResponse(game.DomainEvents));
     }
 }
 

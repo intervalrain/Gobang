@@ -4,9 +4,19 @@ namespace SharedLibrary;
 
 public interface IGobangResponses
 {
-	Task MoveChessEvent(MoveChessEventArgs e);
-    Task PlayerJoinGameFailedEvent(PlayerJoinGameFailedEventArgs e);
-    Task PlayerJoinGameEvent(PlayerJoinGameEventArgs e);
-    Task WelcomeEvent(WelcomeEventArgs e);
+    Task CreateRoomEvent(CreateRoomEventArgs e);
+    Task RoomHasExistedEvent(RoomHasExistedEventArgs e);
+
+    Task GetIntoRoomEvent(GetIntoRoomEventArgs e);
+    Task RoomNotExistEvent(RoomNotExistEventArgs e);
+    Task FailToGetIntoRoomEvent(FailToGetIntoRoomEventArgs e);
+
+    Task StartGameEvent(StartGameEventArgs e);
+
+    Task MoveChessEvent(MoveChessEventArgs e);
+    Task FailToMoveChessEvent(FailToMoveChessEventArgs e);
+    Task PassMoveChessEvent(PassMoveChessEventArgs e);
+
+    Task PlayerWinGameEvent(PlayerWinGameEventArgs e);
 }
 

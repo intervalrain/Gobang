@@ -1,4 +1,5 @@
 ﻿using Application.DataModels;
+using Domain.Rules;
 
 namespace Application.Common;
 
@@ -28,14 +29,11 @@ public static class RepositoryExtension
 
     private static Gobang ToApplication(this Domain.Gobang domainGobang)
     {
-        return new Gobang(domainGobang.Id);
+        return new Gobang(domainGobang.Id, domainGobang.Black.Id, domainGobang.Room.Password!);
     }
 
     public static Domain.Gobang ToDomain(this Gobang gobang)
     {
-        return new Domain.Gobang
-        {
-            Id = gobang.Id
-        };
+        return new Domain.Gobang(gobang.Id, gobang.Password, new Domain.Chess(), new Simple(), gobang.HostId);
     }
 } 

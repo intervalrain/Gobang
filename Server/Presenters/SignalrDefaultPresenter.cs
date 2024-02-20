@@ -9,9 +9,10 @@ public class SignalrDefaultPresenter<TResponse> : IPresenter<TResponse> where TR
 
 	public SignalrDefaultPresenter(IEventBus<DomainEvent> eventBus)
 	{
+        _eventBus = eventBus;
 	}
 
-    public async Task PresentTask(TResponse response)
+    public async Task PresentAsync(TResponse response)
     {
         await _eventBus.PublishAsync(response.Events);
     }

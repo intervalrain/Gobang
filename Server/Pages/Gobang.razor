@@ -1,29 +1,21 @@
-﻿@page "/gobang"
+﻿@page "/{RoomName}"
 @page "/"
 @inject IJSRuntime JS
 
-<div class="gobang-box">
-    <div class="chess">
-        @for (var i = 0; i < 19; i++)
-        {
-            @for (var j = 0; j < 19; j++)
-            {
-                var _i = i;
-                var _j = j;
-                <div class="cell" @onclick="@(async () => await Playing(_i, _j))">
-                    <span class="chess@(Chess[i, j])"></span>
-                </div>
-            }
-        }
-    </div>
-</div>
-
 <div class="chess-info">
     <h1>五子棋⚫⚪</h1>
+    @if (!IsInRoom)
+    {
+        <p><button Variant="Variant.Outlined" Color="Color.Primary" @onclick="CreateRoom">創建房間</button></p>
+        <p><button Variant="Variant.Outlined" Color="Color.Primary" @onclick="GetIntoRoom">加入房間</button></p>
+    }
+    else
+    {
+        <p><button Variant="Variant.Outlined" Color="Color.Primary" @onclick="StartGame">@(IsInGame ? "重置遊戲" : "開始遊戲")</button></p>
+        <p><button Variant="Variant.Outlined" Color="Color.Primary" @onclick="Invite">邀請朋友</button></p>
+    }
     <p><b>⚡是時候表演真正的技術了，快來一場頭腦對決吧⚡</b></p>
-    <p><label><input type="radio" name="chess" checked="checked" @onclick="@(() => first = "ai")"> 電腦先手</label></p>
-    <p><label><input type="radio" name="chess" @onclick="@(() => first = "me")"> 我先手</label></p>
-    <p><button class="box-btn" @onclick="StartGame">@(IsInGame ? "結束遊戲" : "開始遊戲")</button></p>
+
     <div class="chess-msg">
         <p><b>@msgs</b></p>
         <p>遊戲規則：</p>
@@ -38,3 +30,10 @@
         <span>（9）輪流下子是雙方的權利</span>
     </div>
 </div>
+
+@if (IsInGame)
+{
+    <div class="gobang-box">
+        <Server.Components.Chessboard Chess="Chess" OnPlaying="Playing"></Server.Components.Chessboard>
+    </div>
+}
